@@ -28,13 +28,13 @@ STEPS:
 4. Update deadlines.md: append any deadline not already in the table; set status to "past"
    for rows whose due date has passed (or "done" if Canvas shows it submitted). Keep the
    table sorted by due date.
-5. Calendar sync (optional): for each row with an EMPTY Event ID, create an event on your
-   Google Calendar (calendarId: <YOUR_GOOGLE_CALENDAR_ID>, timezone <YOUR_TIMEZONE>).
-   Title: "Course — Assignment due". Put the assignment's Canvas URL and a one-line
-   requirement digest in the event description. Write the returned event ID back into the
-   row. NEVER create an event for a row that already has an Event ID — that is the
+5. Calendar sync (required — part of the integration): for each row with an EMPTY Event ID,
+   create an event on your Google Calendar (calendarId: <YOUR_GOOGLE_CALENDAR_ID>, timezone
+   <YOUR_TIMEZONE>). Title: "Course — Assignment due". Put the assignment's Canvas URL and a
+   one-line requirement digest in the event description. Write the returned event ID back
+   into the row. NEVER create an event for a row that already has an Event ID — that is the
    duplicate guard.
-6. Drive sync (optional): overwrite your Google Drive doc (file ID:
+6. Drive sync (required — part of the integration): overwrite your Google Drive doc (file ID:
    <YOUR_GOOGLE_DRIVE_DEADLINES_DOC_ID>) with the current deadlines table followed by this
    week's summary, so claude.ai always sees fresh data.
 

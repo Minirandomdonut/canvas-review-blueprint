@@ -7,7 +7,14 @@ here (terminal, desktop app, or a scheduled task) must follow this playbook.
 
 Many institutions **disable personal Canvas API tokens**, so there is no API access.
 Canvas is read **only** through the **Claude in Chrome** extension, riding your
-logged-in browser session. Consequences:
+logged-in browser session.
+
+The point of the system is to be an **alternative Canvas integration for Claude**: because
+claude.ai cannot read Canvas directly, this system writes every deadline into **Google
+Calendar** and a **Google Drive doc**, which claude.ai *can* read through its native Google
+connectors. That sync is therefore **the integration itself**, not an add-on — never skip it.
+
+Consequences:
 
 - If Chrome isn't connected or you aren't logged into Canvas, **stop and say so** —
   never fabricate Canvas content.
@@ -47,7 +54,7 @@ scan of the dashboard/To-Do only, diff against `deadlines.md`. Nothing new → s
 tasks" and touch nothing. New items → full intake for just those items (description,
 deadlines.md row, calendar event, Drive refresh, dated note in the week's review file).
 
-## Sync rules (optional — delete this section if you don't use Google sync)
+## Sync rules (required — this is the integration)
 
 - **Google Calendar**: events go on a dedicated calendar (e.g. "Canvas Deadlines") —
   calendarId `<YOUR_GOOGLE_CALENDAR_ID>`, timezone `<YOUR_TIMEZONE>`. Event title:
