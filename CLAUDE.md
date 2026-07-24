@@ -21,9 +21,26 @@ Consequences:
 - Do NOT attempt any Canvas API, token-based MCP, or credential entry. They will not work
   and must not be tried.
 - Everything in Canvas is **read-only**: never submit, post, comment, or change settings.
+  This is a hard invariant — no exceptions, in any tool or routine.
+
+## Tool catalog
+
+Capabilities are organized as a **catalog of discrete, read-only tools** — the browser-native
+counterpart to an MCP server's tool list. `TOOLS.md` is the **source of truth** for what the
+system can do; read it to see each tool's Inputs → Returns → Safety → How it runs. Available
+tools include `list_courses`, `list_assignments`, `get_assignment`, `get_rubric`,
+`get_submission_feedback`, `list_modules`, `list_announcements`, `get_upcoming_work`,
+`find_new_tasks`, and `sync_deadlines`.
+
+The two scheduled routines below are **not** separate logic — they are **automations composed
+from these tools** (e.g. the weekly review = `get_upcoming_work` → write `reviews/` →
+`sync_deadlines`). When you need a capability, invoke the matching tool from `TOOLS.md` rather
+than improvising.
 
 ## File map
 
+- `TOOLS.md` — the **tool catalog** (read-only) + a coverage-vs-canvas-mcp table. Source of
+  truth for capabilities.
 - `deadlines.md` — the **living memory**. One table of every known deadline: course,
   assignment, due date, status (`upcoming` / `done` / `past`), Google Calendar event ID,
   notes. This file is the single source of truth for "what do we already know".

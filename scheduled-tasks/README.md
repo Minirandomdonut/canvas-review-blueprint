@@ -1,7 +1,8 @@
 # scheduled-tasks
 
 Ready-made copies of the two recurring routines (plus an optional one-time "resume" task),
-in the `SKILL.md` shape the Claude desktop app's scheduler expects.
+in the `SKILL.md` shape the Claude desktop app's scheduler expects. Each routine is an
+**automation composed from the read-only tools in [`../TOOLS.md`](../TOOLS.md)**.
 
 To use one, place it at:
 

@@ -1,7 +1,13 @@
 # Canvas Review Blueprint
 
-A reusable blueprint for turning **Claude** into an automated **Canvas LMS review
-assistant** — even when your institution has **disabled personal Canvas API tokens**.
+> **v2** — now a **browser-native Canvas tool catalog for Claude**: the no-token counterpart
+> to an MCP server. See [`TOOLS.md`](TOOLS.md) for the full tool list and
+> [`CHANGELOG.md`](CHANGELOG.md) for what changed.
+
+A reusable blueprint for turning **Claude** into a **Canvas LMS assistant** — even when your
+institution has **disabled personal Canvas API tokens**. It exposes an on-demand catalog of
+read-only "tools" (list assignments, read rubrics, check grades & feedback, browse modules …)
+plus two scheduled automations built on top of them.
 
 Instead of an API, this system reads Canvas through the **Claude in Chrome** browser
 extension, riding your own already-logged-in Canvas session. It then **syncs your deadlines
@@ -25,16 +31,29 @@ Google Calendar and Drive act as the bridge that a Canvas API normally would.
 
 ## What it does
 
-- **Weekly review** (e.g. Sunday evening): a deep dive across your active courses — reads the
-  full body of every assignment due in the next ~7 days, plus resources and announcements —
-  and writes it to `reviews/YYYY-MM-DD.md`.
-- **Daily check** (e.g. Mon–Sat afternoon): a quick scan of the dashboard / To-Do for
-  *surprise* homework posted mid-week, diffed against what's already known.
+- **Tool catalog** ([`TOOLS.md`](TOOLS.md)): on-demand, **read-only** tools Claude in Chrome
+  invokes against your logged-in Canvas — `list_courses`, `list_assignments`, `get_assignment`,
+  `get_rubric`, `get_submission_feedback`, `list_modules`, `get_upcoming_work`, and more. This
+  is the "MCP feel": discrete, well-specified capabilities you call as needed.
+- **Automations built on the catalog** — two scheduled routines that compose those tools:
+  - **Weekly review** (e.g. Sunday evening): a deep dive across active courses — full bodies of
+    everything due in the next ~7 days, plus resources and announcements — written to
+    `reviews/YYYY-MM-DD.md`.
+  - **Daily check** (e.g. Mon–Sat afternoon): a quick scan for *surprise* homework posted
+    mid-week, diffed against what's already known.
 - **Living memory** (`deadlines.md`): one table that is the single source of truth for every
   known deadline, with a built-in duplicate guard for calendar events.
-- **Integration (the whole point)**: mirrors every deadline to a Google Calendar and a Google
-  Drive doc, so the claude.ai chatbot can read your Canvas workload through its Google
-  connectors — the bridge that replaces a missing Canvas API.
+- **Integration (the whole point)**: the `sync_deadlines` tool mirrors every deadline to a
+  Google Calendar and a Google Drive doc, so the claude.ai chatbot can read your Canvas
+  workload through its Google connectors — the bridge that replaces a missing Canvas API.
+
+## How this compares to an MCP server
+
+A real Canvas MCP server (e.g. [canvas-mcp](https://github.com/lucanardinocchi/canvas-mcp))
+calls the Canvas REST API and **requires a personal API token**. This blueprint targets the
+case where tokens are **disabled**: same *shape* — a catalog of named tools — but each tool is
+executed by **Claude in Chrome** on your logged-in session instead of over the API, and it is
+**strictly read-only**. See the "Coverage vs. canvas-mcp" table in [`TOOLS.md`](TOOLS.md).
 
 ## Prerequisites
 
@@ -62,10 +81,12 @@ Google Calendar and Drive act as the bridge that a Canvas API normally would.
 | File | Purpose |
 |------|---------|
 | `CLAUDE.md` | The playbook every Claude session in this folder must follow. Start here. |
-| `TASK-PROMPTS.md` | The exact prompts + cron settings for the two scheduled tasks. |
+| `TOOLS.md` | The read-only tool catalog + coverage-vs-canvas-mcp table. |
+| `TASK-PROMPTS.md` | The exact prompts + cron settings for the two scheduled automations. |
 | `deadlines.md` | The living-memory table of all known deadlines (starts empty). |
 | `reviews/` | One `YYYY-MM-DD.md` file per weekly run (starts empty). |
 | `scheduled-tasks/` | Ready-made `SKILL.md`-style copies of the routines. |
+| `CHANGELOG.md` | Version history (v1 → v2). |
 
 ## Have a Canvas API key?
 

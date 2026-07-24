@@ -1,5 +1,8 @@
 # Scheduled-task prompts for the Claude desktop app
 
+These two tasks are **automations composed from the read-only tools in `TOOLS.md`** — see that
+file for each tool's exact behavior. Everything here stays strictly read-only in Canvas.
+
 ## Handoff instructions (for the desktop-app Claude reading this file)
 
 Do these three things with the scheduled-tasks tools:
@@ -39,6 +42,9 @@ STEPS:
    descriptions (open each assignment page and read the complete body, not just the title),
    due dates, linked resources and files (readings, PDFs, Pages, Module materials), and
    announcements posted in the last week.
+   Where it adds useful context (still read-only), you may also use the `get_rubric`,
+   `get_submission_feedback`, and `list_modules` tools from TOOLS.md — e.g. note the grading
+   rubric for a big assignment, or flag returned feedback on a prior submission.
 3. Save the summary to reviews/YYYY-MM-DD.md (today's date): a "What's due this week"
    deadline timeline first, then per-course detail (instructions digest, resources,
    announcements).
