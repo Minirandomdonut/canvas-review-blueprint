@@ -9,10 +9,15 @@ into Google Calendar and a Google Drive doc** — and that sync *is* the integra
 claude.ai chatbot can't read Canvas directly, but it *can* read your Google Calendar and
 Drive through its native connectors. So the flow is:
 
-> **Canvas** → (read via Claude in Chrome) → **Google Calendar + Google Drive** → read by
-> **claude.ai** through its Google connectors.
+```mermaid
+flowchart LR
+    A["📚 Canvas LMS<br/>(no API token)"] -->|"read via<br/>Claude in Chrome"| B["🤖 Claude<br/>reads assignments<br/>&amp; deadlines"]
+    B -->|"writes deadlines"| C["📅 Google Calendar<br/>🗂️ Google Drive doc"]
+    C -->|"read via<br/>Google connectors"| D["💬 claude.ai<br/>sees your workload"]
+```
 
-This is what makes it an *alternative Canvas integration for Claude* when no API token exists.
+This is what makes it an *alternative Canvas integration for Claude* when no API token exists —
+Google Calendar and Drive act as the bridge that a Canvas API normally would.
 
 > This repository contains **only the framework** — templates, playbooks, and scheduled-task
 > prompts. It ships with **no personal data**. Every value you need to customize appears as a
