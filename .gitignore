@@ -1,7 +1,10 @@
 # macOS
 .DS_Store
 
+# Build output — the release zip is attached to GitHub Releases, not committed.
+dist/
+
 # Personal data — keep out of the public blueprint.
 # If you build these locally in your own copy, they will NOT be committed.
 academic-profile/
-reviews/20*.md
+docs/legacy/reviews/20*.md
