@@ -1,0 +1,11 @@
+{
+  "name": "canvas-review",
+  "description": "Track Canvas LMS coursework without an API token — reads assignments, due dates, rubrics and feedback through the logged-in browser, then syncs deadlines to Google Calendar and Drive.",
+  "version": "3.0.0",
+  "author": {
+    "name": "Minirandomdonut"
+  },
+  "homepage": "https://github.com/Minirandomdonut/canvas-review-blueprint",
+  "repository": "https://github.com/Minirandomdonut/canvas-review-blueprint",
+  "license": "MIT"
+}

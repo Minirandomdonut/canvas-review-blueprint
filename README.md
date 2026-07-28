@@ -1,105 +1,162 @@
-# Canvas Review Blueprint
+# Canvas Review
 
-> **v2** — now a **browser-native Canvas tool catalog for Claude**: the no-token counterpart
-> to an MCP server. See [`TOOLS.md`](TOOLS.md) for the full tool list and
-> [`CHANGELOG.md`](CHANGELOG.md) for what changed.
+**Turn Claude into your Canvas assistant — even if your school blocked Canvas API tokens.**
 
-A reusable blueprint for turning **Claude** into a **Canvas LMS assistant** — even when your
-institution has **disabled personal Canvas API tokens**. It exposes an on-demand catalog of
-read-only "tools" (list assignments, read rubrics, check grades & feedback, browse modules …)
-plus two scheduled automations built on top of them.
+Ask "what's due this week?" and get a real answer, read straight from your own Canvas account.
+Your deadlines get written into a Google Calendar automatically, so they show up on your phone
+alongside everything else.
 
-Instead of an API, this system reads Canvas through the **Claude in Chrome** browser
-extension, riding your own already-logged-in Canvas session. It then **syncs your deadlines
-into Google Calendar and a Google Drive doc** — and that sync *is* the integration: the
-claude.ai chatbot can't read Canvas directly, but it *can* read your Google Calendar and
-Drive through its native connectors. So the flow is:
+No coding. No terminal. No GitHub account needed.
+
+---
+
+## Before you start — you need a paid Claude plan
+
+Read this bit first so you don't waste time:
+
+| What you need | Why |
+|---|---|
+| **Claude Pro, Max, Team, or Enterprise** | Reading Canvas needs browser control, which isn't on the Free plan |
+| **Claude desktop app** | Browser control needs the desktop app open |
+| **Google account** | Your deadlines get saved to Google Calendar + Drive |
+
+**The Free plan will not work.** You can upload this skill on Free, but it won't be able to read
+Canvas — that's a limit of the Claude plan, not something this project can work around. Claude
+Pro is currently $20/month.
+
+Already have Pro? Great, setup takes about five minutes.
+
+---
+
+## Quick start
+
+1. **Download** `canvas-review.zip` from the
+   [Releases page](https://github.com/Minirandomdonut/canvas-review-blueprint/releases).
+2. Go to **[claude.ai](https://claude.ai) → Settings → Capabilities** and turn on **code
+   execution** (skills need this).
+3. Go to **Customize → Skills → Upload skill** and pick the `canvas-review.zip` you downloaded.
+4. Connect **Google Calendar** and **Google Drive** in your Claude connector settings.
+5. Install the [Claude in Chrome extension](https://claude.com/claude-for-chrome) and make sure
+   you're logged into Canvas in that browser.
+6. Open the **Claude desktop app → Cowork** and say:
+
+   > **Set up my Canvas tracker.**
+
+Claude asks you two questions (your Canvas web address and your timezone), then builds everything
+else itself — it creates the Google Calendar and the tracking doc for you and remembers the IDs.
+
+**There is nothing to fill in by hand.** No config file, no copying folder paths, no hunting for a
+Google Calendar ID.
+
+Stuck? See [docs/cowork-setup.md](docs/cowork-setup.md) for the walkthrough with every click, or
+[docs/troubleshooting.md](docs/troubleshooting.md).
+
+---
+
+## Then just ask
+
+Once it's set up, in Cowork:
+
+- *"What's due this week?"*
+- *"What's the rubric for my history essay?"*
+- *"Did my teacher leave feedback on my last submission?"*
+- *"Any new homework posted since yesterday?"*
+
+To make it run on its own, see [Scheduled tasks](docs/cowork-setup.md#scheduled-tasks) — a weekly
+deep review and a daily surprise-homework check.
+
+---
+
+## What it can do
+
+A catalog of **read-only** tools: `list_courses`, `list_assignments`, `get_assignment`,
+`get_rubric`, `get_submission_feedback`, `list_modules`, `list_announcements`,
+`get_upcoming_work`, `find_new_tasks`, and `sync_deadlines`.
+
+Full specs in [`skill/canvas-review/references/tools.md`](skill/canvas-review/references/tools.md).
+
+**It never writes to Canvas.** It won't submit work, post to discussions, or change any setting —
+that's a hard rule built into the skill, not a preference.
+
+---
+
+## How it works
+
+Your school blocked API tokens, so there's no normal way to connect Canvas to Claude. This works
+around that in two hops: Claude reads Canvas through *your own logged-in browser*, then writes
+what it finds into Google Calendar and Drive — which Claude can read natively from anywhere.
 
 ```mermaid
 flowchart LR
-    A["📚 Canvas LMS<br/>(no API token)"] -->|"read via<br/>Claude in Chrome"| B["🤖 Claude<br/>reads assignments<br/>&amp; deadlines"]
+    A["📚 Canvas LMS<br/>(no API token)"] -->|"read via<br/>browser control"| B["🤖 Claude<br/>reads assignments<br/>&amp; deadlines"]
     B -->|"writes deadlines"| C["📅 Google Calendar<br/>🗂️ Google Drive doc"]
-    C -->|"read via<br/>Google connectors"| D["💬 claude.ai<br/>sees your workload"]
+    C -->|"read via<br/>Google connectors"| D["💬 Claude anywhere<br/>sees your workload"]
 ```
 
-This is what makes it an *alternative Canvas integration for Claude* when no API token exists —
-Google Calendar and Drive act as the bridge that a Canvas API normally would.
+That Google sync **is** the integration — it's the bridge standing in for the Canvas API you don't
+have. It's also why the Google connectors aren't optional.
 
-> This repository contains **only the framework** — templates, playbooks, and scheduled-task
-> prompts. It ships with **no personal data**. Every value you need to customize appears as a
-> `<PLACEHOLDER>` you replace with your own.
+The Drive doc doubles as the config store, which is why you never have to paste an ID anywhere.
 
-## What it does
+---
 
-- **Tool catalog** ([`TOOLS.md`](TOOLS.md)): on-demand, **read-only** tools Claude in Chrome
-  invokes against your logged-in Canvas — `list_courses`, `list_assignments`, `get_assignment`,
-  `get_rubric`, `get_submission_feedback`, `list_modules`, `get_upcoming_work`, and more. This
-  is the "MCP feel": discrete, well-specified capabilities you call as needed.
-- **Automations built on the catalog** — two scheduled routines that compose those tools:
-  - **Weekly review** (e.g. Sunday evening): a deep dive across active courses — full bodies of
-    everything due in the next ~7 days, plus resources and announcements — written to
-    `reviews/YYYY-MM-DD.md`.
-  - **Daily check** (e.g. Mon–Sat afternoon): a quick scan for *surprise* homework posted
-    mid-week, diffed against what's already known.
-- **Living memory** (`deadlines.md`): one table that is the single source of truth for every
-  known deadline, with a built-in duplicate guard for calendar events.
-- **Integration (the whole point)**: the `sync_deadlines` tool mirrors every deadline to a
-  Google Calendar and a Google Drive doc, so the claude.ai chatbot can read your Canvas
-  workload through its Google connectors — the bridge that replaces a missing Canvas API.
+## Your data
 
-## How this compares to an MCP server
+- Everything stays in **your** Canvas, **your** Google account, and **your** Claude account.
+- This repo ships **no personal data** — it's the framework only.
+- Canvas access is read-only. The only things written are your own Google Calendar and Drive doc.
 
-A real Canvas MCP server (e.g. [canvas-mcp](https://github.com/lucanardinocchi/canvas-mcp))
-calls the Canvas REST API and **requires a personal API token**. This blueprint targets the
-case where tokens are **disabled**: same *shape* — a catalog of named tools — but each tool is
-executed by **Claude in Chrome** on your logged-in session instead of over the API, and it is
-**strictly read-only**. See the "Coverage vs. canvas-mcp" table in [`TOOLS.md`](TOOLS.md).
+---
 
-## Prerequisites
+## Advanced
 
-1. The **Claude desktop app** (its *scheduled tasks* feature runs the routines automatically).
-2. The **Claude in Chrome** extension, signed into the same Canvas account you use.
-3. A **Google account** with a dedicated Calendar and a Drive doc you control — **required**,
-   this is where the deadlines are written.
-4. **claude.ai's Google Calendar and Google Drive connectors enabled**, so the chatbot can
-   actually read the synced data. Without this, the sync has nowhere to land.
+<details>
+<summary><b>Install as a Claude Code plugin instead</b></summary>
 
-## How to replicate
+If you use Claude Code in a terminal:
 
-1. **Copy this folder** somewhere permanent, e.g. `~/Documents/Canvas Review/`.
-2. **Open `CLAUDE.md`** and fill in every `<PLACEHOLDER>` with your own values: your folder
-   path, timezone, your Google Calendar ID, your Google Drive doc ID (both required for the
-   sync), and your Canvas user ID if you want direct submission links.
-3. **Set up the two scheduled tasks** in the Claude desktop app using the prompts in
-   `TASK-PROMPTS.md` (or the ready-made files in `scheduled-tasks/`). The suggested crons are
-   `0 18 * * 0` (weekly, Sunday 6 PM) and `0 16 * * 1-6` (daily, Mon–Sat 4 PM).
-4. **Run the weekly task once manually** ("Run now") so you can approve the Claude in Chrome
-   browser-control permission; after that, automatic runs won't pause on a prompt.
+```
+/plugin marketplace add Minirandomdonut/canvas-review-blueprint
+/plugin install canvas-review@canvas-review
+```
 
-## File map
+Then `/reload-plugins`. Same skill, different delivery.
+</details>
 
-| File | Purpose |
-|------|---------|
-| `CLAUDE.md` | The playbook every Claude session in this folder must follow. Start here. |
-| `TOOLS.md` | The read-only tool catalog + coverage-vs-canvas-mcp table. |
-| `TASK-PROMPTS.md` | The exact prompts + cron settings for the two scheduled automations. |
-| `deadlines.md` | The living-memory table of all known deadlines (starts empty). |
-| `reviews/` | One `YYYY-MM-DD.md` file per weekly run (starts empty). |
-| `scheduled-tasks/` | Ready-made `SKILL.md`-style copies of the routines. |
-| `CHANGELOG.md` | Version history (v1 → v2). |
+<details>
+<summary><b>How this compares to an MCP server</b></summary>
 
-## Have a Canvas API key?
+A real Canvas MCP server calls the Canvas REST API and **requires a personal API token**. This
+project targets the case where tokens are **disabled**: same *shape* — a catalog of named tools —
+but each tool is executed by browser control on your logged-in session, and it's strictly
+read-only. See the "Coverage vs. canvas-mcp" table in
+[`tools.md`](skill/canvas-review/references/tools.md).
+</details>
 
-This blueprint exists for the **token-disabled** case. If your institution *does* let you
-generate a personal Canvas API token, you don't need the browser workaround — use the cleaner,
-native path:
+<details>
+<summary><b>Does your school allow Canvas API tokens?</b></summary>
 
-**➡️ [lucanardinocchi/canvas-mcp](https://github.com/lucanardinocchi/canvas-mcp)** — an MCP
-server that wraps the Canvas REST API and connects Canvas **directly** to Claude Desktop
-(list/read assignments, rubrics, feedback, even submit work) using your API token.
+Then you don't need the browser workaround. Use the cleaner native path:
+**[lucanardinocchi/canvas-mcp](https://github.com/lucanardinocchi/canvas-mcp)**, an MCP server
+that wraps the Canvas REST API and connects Canvas directly to Claude.
 
-Rule of thumb: **token available → canvas-mcp; token disabled → this blueprint.**
+Rule of thumb: **token available → canvas-mcp; token disabled → this project.**
+
+To check: open Canvas → Account → Settings and look for "+ New Access Token". Missing or greyed
+out means tokens are disabled.
+</details>
+
+<details>
+<summary><b>The original desktop-app method (v2)</b></summary>
+
+Earlier versions used desktop-app scheduled tasks with local Markdown files in
+`~/Documents/Canvas Review/`. That method still works and is preserved in
+[docs/desktop-legacy.md](docs/desktop-legacy.md) — useful if you want your review history as local
+files you can read offline.
+</details>
+
+---
 
 ## License
 
-MIT — see `LICENSE`. Use it, fork it, adapt it freely.
+MIT — see [`LICENSE`](LICENSE). Use it, fork it, adapt it freely.

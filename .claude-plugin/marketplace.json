@@ -1,0 +1,19 @@
+{
+  "name": "canvas-review",
+  "description": "Canvas LMS tools for students whose school has disabled Canvas API tokens.",
+  "owner": {
+    "name": "Minirandomdonut",
+    "url": "https://github.com/Minirandomdonut"
+  },
+  "plugins": [
+    {
+      "name": "canvas-review",
+      "source": "./skill/canvas-review",
+      "description": "Track Canvas LMS coursework without an API token — reads assignments, due dates, rubrics and feedback through the logged-in browser, then syncs deadlines to Google Calendar and Drive.",
+      "version": "3.0.0",
+      "license": "MIT",
+      "homepage": "https://github.com/Minirandomdonut/canvas-review-blueprint",
+      "keywords": ["canvas", "lms", "school", "student", "deadlines", "assignments", "education"]
+    }
+  ]
+}
