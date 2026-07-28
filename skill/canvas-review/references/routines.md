@@ -34,9 +34,11 @@ ACCESS RULES: Canvas access requires the logged-in browser session. There is NO 
 (the institution disabled personal tokens). Use ONLY browser control against the already-logged-in
 Canvas session. Do NOT attempt any Canvas API or token-based MCP — they will not work.
 
-CONFIG: find the Google Drive doc titled "Canvas Review Deadlines" and read its `## Config`
-section for the Canvas base URL, timezone, calendar ID, and Canvas user ID. If the doc doesn't
-exist, run first-run setup instead of guessing.
+CONFIG: find the config doc in Google Drive with the query `fullText contains
+'CANVAS-REVIEW-CONFIG-V3' and mimeType = 'application/vnd.google-apps.document'` — do NOT search
+by title, which fuzzy-matches and returns the wrong docs. Read the Canvas base URL, timezone,
+calendar ID, and Canvas user ID from the `Label: value` lines, ignoring any backslash escaping.
+If the doc doesn't exist, run first-run setup instead of guessing.
 
 STEPS:
 1. Guard: verify browser control is connected and you are logged into Canvas (find a Canvas tab or
@@ -59,9 +61,10 @@ STEPS:
    Canvas URL and a one-line requirement digest in the event description. Write the returned event
    ID back into the row. NEVER create an event for a row that already has an Event ID — that is
    the duplicate guard.
-6. Drive sync (required — part of the integration): overwrite the "Canvas Review Deadlines" doc
-   with the `## Config` header unchanged, then the current deadlines table, then this week's
-   summary. Preserve the config header.
+6. Drive sync (required — part of the integration): overwrite the config doc with the
+   CANVAS-REVIEW-CONFIG-V3 marker line and config section unchanged, then the current deadlines
+   table, then this week's summary. Read the doc first and carry the marker and config forward —
+   losing the marker makes the doc unfindable on every future run.
 
 CONSTRAINTS: read-only in Canvas — never submit, post, or change settings. If a page won't load or
 you hit a permissions wall, note it in the output instead of guessing. Keep the summary skimmable.
@@ -92,8 +95,8 @@ STEPS:
 5. If new items exist, for each one: open it and read the full description; append a row to the
    deadlines table; create its calendar event (title "Course — Assignment due", Canvas URL +
    digest in the description) and record the event ID in the row; then overwrite the Drive doc
-   with the updated table, preserving the config header; and add a dated "New task spotted: …"
-   note to the latest summary section.
+   with the updated table, preserving the CANVAS-REVIEW-CONFIG-V3 marker and the config section;
+   and add a dated "New task spotted: …" note to the latest summary section.
 
 CONSTRAINTS: read-only in Canvas; honest about anything that fails to load; keep the reply short —
 this is a background check, not a report.

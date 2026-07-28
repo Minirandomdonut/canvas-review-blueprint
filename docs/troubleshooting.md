@@ -52,14 +52,30 @@ Use `./build.sh`, which gets this right. If you zipped by hand on macOS, right-c
 
 ## It asks me to set up again every time
 
-It couldn't find the config doc. Check that:
+It couldn't find the config doc. The doc is located by a **marker line**, not by its title, so
+check in this order:
 
-- The Google Drive doc is still titled exactly **`Canvas Review Deadlines`** — renaming it breaks
-  the lookup.
-- The **Google Drive connector** is still connected.
-- You're signed into the same Google account.
-- The `## Config` section at the top of the doc still exists. If a sync overwrote it, paste it
-  back or delete the doc and run setup again.
+1. Open your `Canvas Review Deadlines` doc and confirm it still contains the line
+   **`CANVAS-REVIEW-CONFIG-V3`**. This is the single most common cause — if a sync dropped it, the
+   doc becomes invisible to every future run. Paste it back near the top.
+2. Confirm the `Config` section with `Canvas base URL:`, `Timezone:`, and `Calendar ID:` lines is
+   still there.
+3. Check the **Google Drive connector** is still connected and you're on the same Google account.
+
+Renaming the doc is survivable, since lookup is by marker — but keep the title anyway so you can
+find it yourself.
+
+If the marker is gone and you'd rather start clean, delete the doc and run setup again. Your
+calendar events aren't affected, but the Event IDs are, so see the duplicate-events section below.
+
+## Wrong document picked up
+
+Drive's title search is fuzzy — searching `Canvas Review Deadlines` also matches `Canvas
+Deadlines` and similar names. That's exactly why the marker exists.
+
+If Claude reports finding several candidates, it should ask you which to use rather than guess. If
+it picked the wrong one, tell it the correct doc and confirm only that doc has the marker line —
+two docs carrying the marker will make it ambiguous every run.
 
 ---
 

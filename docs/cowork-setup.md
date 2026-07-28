@@ -85,9 +85,19 @@ Claude will ask you two things:
   `https://canvas.yourschool.edu` or `https://yourschool.instructure.com`.
 - **Your timezone.**
 
-Then it does the rest by itself: creates a Google Calendar called **Canvas Deadlines**, finds your
-Canvas user ID, and creates a Google Drive doc called **Canvas Review Deadlines** that stores both
-your settings and your deadline list.
+Then it checks whether you already have a calendar named **Canvas Deadlines**. If you don't, it
+asks you to make one — this is the only part Claude can't do for you, because the Google Calendar
+connector can create events but not calendars:
+
+> Open [calendar.google.com](https://calendar.google.com) → click the **+** next to "Other
+> calendars" in the left sidebar → **Create new calendar** → name it exactly **`Canvas Deadlines`**
+> → set your timezone → **Create calendar**.
+
+Takes about thirty seconds. **You never have to copy the calendar ID** — Claude looks it up by
+name once the calendar exists.
+
+Everything else is automatic: Claude finds your Canvas user ID and creates a Google Drive doc
+called **Canvas Review Deadlines** holding both your settings and your deadline list.
 
 The first time it opens Chrome, you'll get a **browser-control permission prompt** — approve it.
 

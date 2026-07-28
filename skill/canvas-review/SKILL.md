@@ -34,48 +34,87 @@ that.
 
 ## Step 1 — find the config (do this first, every time)
 
-All configuration and state live in **one Google Drive doc titled `Canvas Review Deadlines`**.
-There is nothing for the user to edit by hand and no config file in this skill.
+All configuration and state live in **one Google Drive doc titled `Canvas Review Deadlines`**,
+identified by the marker string `CANVAS-REVIEW-CONFIG-V3` in its body. There is nothing for the
+user to edit by hand and no config file in this skill.
 
-1. Search Google Drive for a doc named `Canvas Review Deadlines`.
-2. If found, read it. Its `## Config` section holds everything you need:
+**Find it with this exact query — do not search by title alone:**
 
-   ```
-   ## Config
-   - Canvas base URL: https://canvas.school.edu
-   - Canvas user ID: 465957
-   - Timezone: America/Mexico_City
-   - Calendar ID: abc123@group.calendar.google.com
-   - Set up on: 2026-07-27
-   ```
+```
+fullText contains 'CANVAS-REVIEW-CONFIG-V3' and mimeType = 'application/vnd.google-apps.document'
+```
 
-3. If **not** found, run the first-run setup below. Do not ask the user for IDs before checking.
+Title search is unreliable here. Drive's `title = '...'` does **not** do exact matching — it
+returns fuzzy matches — so searching for `Canvas Review Deadlines` also returns docs called
+`Canvas Deadlines`, `Academic Profile — Canvas Year Review`, and similar. Picking the wrong one
+means reading nonsense config or overwriting an unrelated document.
 
-If the Google Drive connector isn't enabled, say so and point the user at
-`docs/cowork-setup.md` — the sync is the integration, so it can't be skipped.
+- **Exactly one result** → that's the config doc. Read it.
+- **No results** → run first-run setup (Step 2). A newly created doc can take a few seconds to
+  become searchable, so if you just created one, retry once before concluding it's missing.
+- **More than one result** → don't guess. Show the user the titles and ask which to use.
+
+**Fallback** if the marker query returns nothing but the user insists setup was already done:
+search `title contains 'Canvas Review Deadlines'`, then **read each candidate and confirm it
+contains the marker** before using it. Never trust a title match on its own.
+
+### Reading the config values
+
+Google Docs escapes Markdown punctuation when a doc is created from text — `## Config` comes back
+as `\#\# Config`, and `America/Mexico_City` as `America/Mexico\_City`. **Do not parse Markdown
+structure.** Instead find the line containing each label and take everything after the colon,
+stripping any stray `\` characters:
+
+| Label to find | Example value |
+|---|---|
+| `Canvas base URL:` | `https://canvas.school.edu` |
+| `Canvas user ID:` | `465957` (may be blank) |
+| `Timezone:` | `America/Mexico_City` |
+| `Calendar ID:` | `abc123@group.calendar.google.com` |
+
+If the Google Drive connector isn't enabled, say so and point the user at `docs/cowork-setup.md` —
+the sync is the integration, so it can't be skipped.
 
 ## Step 2 — first-run setup (only when no config doc exists)
 
-Create everything for the user. Do **not** ask them to hunt down a calendar ID or a file ID by
-hand — those are the two worst steps in the old setup and you can do both yourself.
+Do as much as possible for the user. They should never have to copy an ID.
 
-Ask only these questions, in one short message:
+**Important: you cannot create a Google Calendar.** The Google Calendar connector can create
+*events* but not *calendars* — there is no `create_calendar` tool. So the calendar is the one
+thing the user makes themselves, and you find its ID afterwards.
+
+Ask these questions in one short message:
 
 1. **What's your Canvas web address?** (e.g. `https://canvas.school.edu` — tell them to copy it
    from the address bar while Canvas is open)
 2. **What timezone are you in?** (offer a guess from their locale)
 
-Then, without further prompting:
+Then:
 
-3. Create a Google Calendar named **`Canvas Deadlines`** in that timezone. Keep its calendar ID.
-4. Read the user's Canvas user ID from Canvas via the browser (open `/profile/settings` or read it
-   from any submission URL). If it can't be determined, leave it blank — it only affects direct
-   submission links.
-5. Create a Google Drive doc titled exactly **`Canvas Review Deadlines`**, seeded with the
-   template in `references/doc-template.md`, filling the `## Config` values you just gathered.
-6. Confirm to the user in plain language what you made, and offer to run a first review now.
+3. **Find or set up the calendar.** Call `list_calendars` and look for one named
+   `Canvas Deadlines`.
+   - **Found** → use its ID. Say so, and don't ask them to make another. (Returning users from the
+     old desktop version will already have this.)
+   - **Not found** → ask them to create it, with these exact steps:
+     > Open [calendar.google.com](https://calendar.google.com) → in the left sidebar, click the
+     > **+** next to "Other calendars" → **Create new calendar** → name it exactly
+     > **`Canvas Deadlines`** → set the timezone → **Create calendar**. Tell me when it's done.
 
-Never create a second calendar or a second doc if one already exists.
+     Then call `list_calendars` again and read the ID yourself. **Never ask them to copy the
+     calendar ID** — that's the step this design exists to remove.
+   - If they'd rather not create one, offer to use their primary calendar instead, and warn that
+     deadlines will be mixed in with everything else.
+4. **Get the Canvas user ID** from the browser (open `/profile/settings` or read it from any
+   submission URL). If it can't be determined, leave it blank — it only affects direct submission
+   links.
+5. **Create the Drive doc** titled exactly `Canvas Review Deadlines`, using
+   `references/doc-template.md`. The body **must** contain the line `CANVAS-REVIEW-CONFIG-V3` —
+   that marker is how every future run finds it. Fill in the values you gathered.
+6. **Verify** by running the Step 1 marker query. If it doesn't come back within a couple of
+   retries, tell the user rather than assuming success.
+7. Confirm in plain language what you set up, and offer to run a first review.
+
+Never create a second calendar or a second doc when one already exists.
 
 ## Step 3 — do the work
 
@@ -102,9 +141,19 @@ one-line requirement digest in the description. Write the returned event ID back
 > **Duplicate guard:** never create an event for a row that already has an Event ID. This is the
 > only thing preventing a re-run from spamming the user's calendar. Check it every time.
 
-**Google Drive.** Overwrite the `Canvas Review Deadlines` doc with: the `## Config` section
-unchanged, then the current deadlines table, then the latest weekly summary. Preserve the config
-header — losing it forces the user through setup again.
+**Google Drive.** Overwrite the `Canvas Review Deadlines` doc with: the marker line and config
+section unchanged, then the current deadlines table, then the latest summary.
+
+> **Two things that must survive every write:**
+> - The `CANVAS-REVIEW-CONFIG-V3` marker line — lose it and no future run can find the doc.
+> - The config values — lose them and the user is pushed back through setup.
+>
+> Read the doc before overwriting it and carry both forward. Never write a fresh doc from the
+> template on a normal sync; the template is for first-run only.
+
+Because Google Docs escapes Markdown punctuation, don't rely on the table rendering as Markdown.
+Keep one deadline per line with a consistent separator so it stays parseable when read back, and
+always keep the Event ID on the same line as its assignment.
 
 If the user's Google account also auto-imports a Canvas iCal calendar, leave it alone. The curated
 `Canvas Deadlines` calendar is separate and richer.

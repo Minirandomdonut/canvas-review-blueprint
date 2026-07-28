@@ -35,6 +35,21 @@ GitHub account**. The capabilities are unchanged; the delivery is completely dif
   who wants local Markdown review history. Includes migration notes that reuse an existing
   calendar rather than duplicating it.
 
+### Fixed during live verification
+Testing the bootstrap against real Google Calendar and Drive connectors surfaced three defects in
+the first draft of this release:
+- **Config discovery was unreliable.** Drive's `title = '...'` does not do exact matching — it
+  fuzzy-matches, so the lookup also returned `Canvas Deadlines` and `Academic Profile — Canvas
+  Year Review`. Discovery is now by a `CANVAS-REVIEW-CONFIG-V3` marker string scoped to
+  `mimeType = 'application/vnd.google-apps.document'`, which returns exactly one result.
+- **Setup assumed a calendar could be created.** The Google Calendar connector has no
+  `create_calendar` tool. Setup now reuses an existing `Canvas Deadlines` calendar when present,
+  and otherwise walks the user through making one — then resolves the ID by name, so no ID is ever
+  copied by hand.
+- **Google Docs escapes Markdown on write** (`## Config` → `\#\# Config`, `_` → `\_`), which would
+  have broken config parsing on read-back. Parsing now matches on `Label: value` lines and ignores
+  escaping.
+
 ### Known limitation
 - **The Free plan cannot read Canvas.** Browser control requires a paid Claude plan. The skill
   uploads fine on Free but can't reach Canvas — a platform boundary, now documented up front.
