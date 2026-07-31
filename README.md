@@ -32,6 +32,8 @@ Already have Pro? Great, setup takes about five minutes.
 
 1. **Download** `canvas-review.zip` from the
    [Releases page](https://github.com/Minirandomdonut/canvas-review-blueprint/releases).
+   Download it yourself with your browser — asking Claude to fetch or install this repo for you
+   won't work; claude.ai can't download files from GitHub.
 2. Go to **[claude.ai](https://claude.ai) → Settings → Capabilities** and turn on **code
    execution** (skills need this).
 3. Go to **Customize → Skills → Upload skill** and pick the `canvas-review.zip` you downloaded.
